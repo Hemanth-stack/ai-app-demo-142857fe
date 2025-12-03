@@ -64,6 +64,11 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
 
   const addTodo = useCallback((text: string, dueDate?: Date, priority: 'low' | 'medium' | 'high' = 'medium') => {
     try {
+      if (!text.trim()) {
+        setError('Todo text cannot be empty');
+        return;
+      }
+
       const newTodo: Todo = {
         id: crypto.randomUUID(),
         text: text.trim(),
@@ -73,56 +78,93 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
         dueDate,
         priority,
       };
+      
       setTodos((prev) => [newTodo, ...prev]);
       setError(null);
     } catch (err) {
+      console.error('Error adding todo:', err);
       setError('Failed to add todo');
     }
   }, []);
 
   const toggleTodo = useCallback((id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id 
-          ? { ...todo, completed: !todo.completed, updatedAt: new Date() }
-          : todo
-      )
-    );
+    try {
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id 
+            ? { ...todo, completed: !todo.completed, updatedAt: new Date() }
+            : todo
+        )
+      );
+      setError(null);
+    } catch (err) {
+      console.error('Error toggling todo:', err);
+      setError('Failed to update todo');
+    }
   }, []);
 
   const deleteTodo = useCallback((id: string) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    try {
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+      setError(null);
+    } catch (err) {
+      console.error('Error deleting todo:', err);
+      setError('Failed to delete todo');
+    }
   }, []);
 
   const updateTodo = useCallback((id: string, text: string, dueDate?: Date, priority?: 'low' | 'medium' | 'high') => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id 
-          ? { 
-              ...todo, 
-              text: text.trim(), 
-              updatedAt: new Date(),
-              ...(dueDate !== undefined && { dueDate }),
-              ...(priority && { priority })
-            }
-          : todo
-      )
-    );
+    try {
+      if (!text.trim()) {
+        setError('Todo text cannot be empty');
+        return;
+      }
+
+      setTodos((prev) =>
+        prev.map((todo) =>
+          todo.id === id 
+            ? { 
+                ...todo, 
+                text: text.trim(), 
+                updatedAt: new Date(),
+                ...(dueDate !== undefined && { dueDate }),
+                ...(priority && { priority })
+              }
+            : todo
+        )
+      );
+      setError(null);
+    } catch (err) {
+      console.error('Error updating todo:', err);
+      setError('Failed to update todo');
+    }
   }, []);
 
   const clearCompleted = useCallback(() => {
-    setTodos((prev) => prev.filter((todo) => !todo.completed));
+    try {
+      setTodos((prev) => prev.filter((todo) => !todo.completed));
+      setError(null);
+    } catch (err) {
+      console.error('Error clearing completed todos:', err);
+      setError('Failed to clear completed todos');
+    }
   }, []);
 
   const toggleAllTodos = useCallback(() => {
-    const hasActiveTodos = todos.some((todo) => !todo.completed);
-    setTodos((prev) =>
-      prev.map((todo) => ({
-        ...todo,
-        completed: hasActiveTodos,
-        updatedAt: new Date(),
-      }))
-    );
+    try {
+      const hasActiveTodos = todos.some((todo) => !todo.completed);
+      setTodos((prev) =>
+        prev.map((todo) => ({
+          ...todo,
+          completed: hasActiveTodos,
+          updatedAt: new Date(),
+        }))
+      );
+      setError(null);
+    } catch (err) {
+      console.error('Error toggling all todos:', err);
+      setError('Failed to toggle all todos');
+    }
   }, [todos]);
 
   const filteredTodos = useMemo(() => {

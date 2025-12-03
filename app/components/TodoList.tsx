@@ -8,7 +8,7 @@ interface TodoListProps {
   todos: Todo[];
   onToggleTodo: (id: string) => void;
   onDeleteTodo: (id: string) => void;
-  onUpdateTodo?: (id: string, text: string) => void;
+  onUpdateTodo?: (id: string, text: string, dueDate?: Date, priority?: 'low' | 'medium' | 'high') => void;
   isLoading?: boolean;
   searchQuery?: string;
 }

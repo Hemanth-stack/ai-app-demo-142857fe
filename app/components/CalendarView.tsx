@@ -30,15 +30,12 @@ export default function CalendarView({
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
-    // Get first day of the month and last day
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
-    // Get first day of the calendar (might be from previous month)
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
     
-    // Get last day of the calendar (might be from next month)
     const endDate = new Date(lastDay);
     endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
     
