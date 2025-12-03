@@ -5,6 +5,8 @@ import TodoFilter from './TodoFilter';
 import TodoList from './TodoList';
 import SearchBar from './SearchBar';
 import ErrorBoundary from './ErrorBoundary';
+import ViewToggle from './ViewToggle';
+import CalendarView from './CalendarView';
 import { useTodos } from '../hooks/useTodos';
 import { CheckSquare, AlertCircle } from 'lucide-react';
 import { useMemo } from 'react';
@@ -17,6 +19,7 @@ export default function Component() {
     isLoading,
     error,
     todoCount,
+    view,
     addTodo,
     toggleTodo,
     deleteTodo,
@@ -25,6 +28,7 @@ export default function Component() {
     toggleAllTodos,
     setFilter,
     setSearchQuery,
+    setView,
   } = useTodos();
 
   const hasActiveTodos = useMemo(() => 
@@ -38,7 +42,7 @@ export default function Component() {
         className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4"
         role="main"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <header className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -53,6 +57,11 @@ export default function Component() {
             {todoCount.all > 0 && (
               <div className="mt-4 text-sm text-gray-500">
                 {todoCount.active} of {todoCount.all} todos remaining
+                {todoCount.overdue > 0 && (
+                  <span className="ml-2 px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs font-medium">
+                    {todoCount.overdue} overdue
+                  </span>
+                )}
               </div>
             )}
           </header>
@@ -60,7 +69,7 @@ export default function Component() {
           {/* Error Alert */}
           {error && (
             <div 
-              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3 max-w-4xl mx-auto"
               role="alert"
               aria-live="polite"
             >
@@ -72,38 +81,53 @@ export default function Component() {
             </div>
           )}
 
-          {/* Main Content */}
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-            <TodoForm 
-              onAddTodo={addTodo} 
-              disabled={isLoading}
-            />
-            
-            <SearchBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
-            
-            <TodoFilter
-              currentFilter={filter}
-              onFilterChange={setFilter}
-              todoCount={todoCount}
-              onClearCompleted={clearCompleted}
-              onToggleAll={toggleAllTodos}
-              hasActiveTodos={hasActiveTodos}
-            />
-            
-            <div id="todo-list">
-              <TodoList
-                todos={todos}
-                onToggleTodo={toggleTodo}
-                onDeleteTodo={deleteTodo}
-                onUpdateTodo={updateTodo}
-                isLoading={isLoading}
-                searchQuery={searchQuery}
-              />
-            </div>
+          {/* View Toggle */}
+          <div className="max-w-4xl mx-auto">
+            <ViewToggle currentView={view} onViewChange={setView} />
           </div>
+
+          {/* Main Content */}
+          {view === 'list' ? (
+            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 max-w-4xl mx-auto">
+              <TodoForm 
+                onAddTodo={addTodo} 
+                disabled={isLoading}
+              />
+              
+              <SearchBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+              
+              <TodoFilter
+                currentFilter={filter}
+                onFilterChange={setFilter}
+                todoCount={todoCount}
+                onClearCompleted={clearCompleted}
+                onToggleAll={toggleAllTodos}
+                hasActiveTodos={hasActiveTodos}
+              />
+              
+              <div id="todo-list">
+                <TodoList
+                  todos={todos}
+                  onToggleTodo={toggleTodo}
+                  onDeleteTodo={deleteTodo}
+                  onUpdateTodo={updateTodo}
+                  isLoading={isLoading}
+                  searchQuery={searchQuery}
+                />
+              </div>
+            </div>
+          ) : (
+            <CalendarView
+              todos={todos}
+              onToggleTodo={toggleTodo}
+              onDeleteTodo={deleteTodo}
+              onUpdateTodo={updateTodo}
+              onAddTodo={addTodo}
+            />
+          )}
 
           {/* Footer */}
           <footer className="text-center mt-8 text-gray-500 text-sm">

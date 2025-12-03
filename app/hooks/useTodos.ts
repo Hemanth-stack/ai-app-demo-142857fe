@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Todo, FilterType, TodoState, TodoActions, TodoCount } from '../types/todo';
+import { Todo, FilterType, TodoState, TodoActions, TodoCount, ViewType } from '../types/todo';
 
 const STORAGE_KEY = 'todos-app-data';
 
@@ -17,6 +17,7 @@ function loadTodosFromStorage(): Todo[] {
       ...todo,
       createdAt: new Date(todo.createdAt),
       updatedAt: new Date(todo.updatedAt),
+      dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined,
     }));
   } catch (error) {
     console.error('Failed to load todos from storage:', error);
@@ -40,6 +41,7 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<ViewType>('list');
 
   // Load todos from localStorage on mount
   useEffect(() => {
@@ -60,7 +62,7 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
     }
   }, [todos, isLoading]);
 
-  const addTodo = useCallback((text: string) => {
+  const addTodo = useCallback((text: string, dueDate?: Date, priority: 'low' | 'medium' | 'high' = 'medium') => {
     try {
       const newTodo: Todo = {
         id: crypto.randomUUID(),
@@ -68,6 +70,8 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
         completed: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        dueDate,
+        priority,
       };
       setTodos((prev) => [newTodo, ...prev]);
       setError(null);
@@ -90,11 +94,17 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   }, []);
 
-  const updateTodo = useCallback((id: string, text: string) => {
+  const updateTodo = useCallback((id: string, text: string, dueDate?: Date, priority?: 'low' | 'medium' | 'high') => {
     setTodos((prev) =>
       prev.map((todo) =>
         todo.id === id 
-          ? { ...todo, text: text.trim(), updatedAt: new Date() }
+          ? { 
+              ...todo, 
+              text: text.trim(), 
+              updatedAt: new Date(),
+              ...(dueDate !== undefined && { dueDate }),
+              ...(priority && { priority })
+            }
           : todo
       )
     );
@@ -137,11 +147,21 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
     }
   }, [todos, filter, searchQuery]);
 
-  const todoCount = useMemo((): TodoCount => ({
-    all: todos.length,
-    active: todos.filter((todo) => !todo.completed).length,
-    completed: todos.filter((todo) => todo.completed).length,
-  }), [todos]);
+  const todoCount = useMemo((): TodoCount => {
+    const now = new Date();
+    now.setHours(23, 59, 59, 999); // End of today
+    
+    return {
+      all: todos.length,
+      active: todos.filter((todo) => !todo.completed).length,
+      completed: todos.filter((todo) => todo.completed).length,
+      overdue: todos.filter((todo) => 
+        !todo.completed && 
+        todo.dueDate && 
+        todo.dueDate < now
+      ).length,
+    };
+  }, [todos]);
 
   return {
     todos: filteredTodos,
@@ -149,6 +169,7 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
     searchQuery,
     isLoading,
     error,
+    view,
     todoCount,
     addTodo,
     toggleTodo,
@@ -158,5 +179,6 @@ export function useTodos(): TodoState & TodoActions & { todoCount: TodoCount } {
     toggleAllTodos,
     setFilter,
     setSearchQuery,
+    setView,
   };
 }

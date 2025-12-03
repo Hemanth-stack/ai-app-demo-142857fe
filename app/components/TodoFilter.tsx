@@ -1,7 +1,7 @@
 'use client';
 
 import { FilterType, TodoCount } from '../types/todo';
-import { CheckSquare, Clock, CheckCheck, Trash2 } from 'lucide-react';
+import { CheckSquare, Clock, CheckCheck, Trash2, AlertTriangle } from 'lucide-react';
 
 interface TodoFilterProps {
   currentFilter: FilterType;
@@ -28,6 +28,34 @@ export default function TodoFilter({
 
   return (
     <div className="mb-6 space-y-4">
+      {/* Stats Overview */}
+      {todoCount.all > 0 && (
+        <div className="flex flex-wrap gap-3 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm">
+            <CheckSquare className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">{todoCount.all}</span>
+            <span className="text-gray-600">Total</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <Clock className="h-4 w-4 text-orange-600" />
+            <span className="font-medium">{todoCount.active}</span>
+            <span className="text-gray-600">Active</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCheck className="h-4 w-4 text-green-600" />
+            <span className="font-medium">{todoCount.completed}</span>
+            <span className="text-gray-600">Done</span>
+          </div>
+          {todoCount.overdue > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <span className="font-medium text-red-600">{todoCount.overdue}</span>
+              <span className="text-red-600">Overdue</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Filter Buttons */}
       <div 
         className="flex flex-wrap gap-2"
